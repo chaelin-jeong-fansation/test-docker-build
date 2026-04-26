@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Python3 + 빌드/DB용 패키지 한 번에 설치 (apt-get gdgg한 번만)
+# Python3 + 빌드/DB용 패키지 한 번에 설치 (aptget 한 번만)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 \
