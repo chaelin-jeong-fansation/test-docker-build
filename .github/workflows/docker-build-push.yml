@@ -1,0 +1,100 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*.*.*'  # v1.0.0 형식의 태그
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: chaelin2/test-buildimage
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=2.0.0.0.latest.145.0.7632.116-chromedriver-145.0.7632.117-20260222
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+          flavor: |
+            suffix=-{{date 'YYYYMMDD'}}-{{sha}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Set image visibility to private
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 << 'EOF'
+          import requests
+          import json
+          import os
+          
+          username = os.environ['DOCKER_USERNAME']
+          password = os.environ['DOCKER_PASSWORD']
+          image_name = os.environ['IMAGE_NAME']
+          
+          # Docker Hub 로그인
+          login_url = "https://hub.docker.com/v2/users/login/"
+          login_data = {"username": username, "password": password}
+          response = requests.post(login_url, json=login_data)
+          token = response.json()["token"]
+          
+          # 이미지 visibility를 private으로 설정
+          repo_url = f"https://hub.docker.com/v2/repositories/{image_name}/"
+          headers = {"Authorization": f"JWT {token}", "Content-Type": "application/json"}
+          patch_data = {"is_private": True}
+          requests.patch(repo_url, headers=headers, json=patch_data)
+          EOF
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+
+
+
