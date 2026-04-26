@@ -1,4 +1,4 @@
-# flask_app.py + template_crawl.py 실행용
+# flask_app.py + template_crawl.py 실행용 
 # 베이스: selenium/standalone-chrome (Ubuntu) — RUN 기본 셸은 dash 이므로 bash 전용 &>/glob 미사용
 # FROM selenium/standalone-chrome:145.0.7632.116-chromedriver-145.0.7632.117-20260222
 FROM selenium/standalone-chrome:latest
