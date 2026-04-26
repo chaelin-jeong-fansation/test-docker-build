@@ -29,25 +29,4 @@ RUN apt-get update \
     && python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
 WORKDIR /app
-COPY requirements.txt .
-
-RUN python3 -m pip install --no-cache-dir -r requirements.txt \
-    && (python3 -c "import psutil" 2>/dev/null \
-        || python3 -m pip install --no-cache-dir --no-build-isolation psutil || true)
-
-# 설치 검증
-RUN echo "Checking packages..." \
-    && python3 -c "import json, signal, subprocess, threading, os, time, logging, shutil, tempfile, uuid; from datetime import datetime, timedelta; print('stdlib: OK')" \
-    && python3 -c "import pytz; print('pytz: OK')" \
-    && python3 -c "import flask; print('flask: OK')" \
-    && python3 -c "import psycopg2; print('psycopg2 (PostgreSQL): OK')" \
-    && python3 -c "import pymssql; print('pymssql (MSSQL): OK')" \
-    && (python3 -c "import pyodbc; print('pyodbc (MSSQL): OK')" || echo "pyodbc: optional skip") \
-    && (python3 -c "import psutil; print('psutil: OK')" || echo "psutil: optional") \
-    && python3 -c "from selenium import webdriver; from selenium.webdriver import ActionChains; from selenium.webdriver.common.by import By; from selenium.webdriver.common.keys import Keys; from selenium.webdriver.support import expected_conditions as EC; from selenium.webdriver.support.ui import WebDriverWait; from selenium.webdriver.common.desired_capabilities import DesiredCapabilities; print('selenium (template_crawl.py 호환): OK')" \
-    && (python3 -c "from seleniumwire import webdriver as w; print('selenium-wire: OK')" || echo "selenium-wire: optional skip") \
-    && python3 -c "from bs4 import BeautifulSoup; BeautifulSoup('<p>t</p>','lxml'); BeautifulSoup('<p>t</p>','html.parser'); BeautifulSoup('<p>t</p>','html5lib'); print('beautifulsoup4+lxml+html5lib: OK')" \
-    && python3 -c "import lxml.etree; import lxml.html; print('lxml: OK')" \
-    && python3 -c "from PIL import Image; print('Pillow: OK')" \
-    && echo "Package check completed"
 
