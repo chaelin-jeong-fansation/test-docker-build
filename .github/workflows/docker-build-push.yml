@@ -6,7 +6,7 @@ on:
       - main
       - develop
     tags:
-      - 'v*.*.*'  # v1.0.0 형식의 태그
+      - 'v*.*.*'  # v1.0.0 형식의 태그 
   pull_request:
     branches:
       - main
